@@ -156,6 +156,10 @@ RUN git clone -b master https://github.com/llvm-mirror/libcxx.git && \
     cd ../libunwind && \
     git checkout 2ddcf2461daa5d61c543474aed06b12a8b9ad816
 
+COPY patches/libunwind-*.patch /build/patches/
+RUN cd libunwind && \
+    git am /build/patches/libunwind-*.patch
+
 COPY merge_archives.sh /build
 RUN cd libunwind && \
     for arch in $TOOLCHAIN_ARCHS; do \

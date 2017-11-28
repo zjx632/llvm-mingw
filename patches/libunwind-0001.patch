@@ -1,0 +1,50 @@
+From f16c0ab499bab67d28dcc0fb7ba378b1f48833f7 Mon Sep 17 00:00:00 2001
+From: Martin Storsjo <martin@martin.st>
+Date: Mon, 9 Oct 2017 09:55:27 +0300
+Subject: [PATCH 1/2] Fix handling of DW_CFA_GNU_args_size
+
+This reverts SVN r204290 (7dfc5215ff08e992ffe88c577ba15d641e610d75
+in libcxxabi).
+---
+ src/UnwindCursor.hpp |  2 +-
+ src/libunwind.cpp    | 10 +++++++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/src/UnwindCursor.hpp b/src/UnwindCursor.hpp
+index 6892f96..46d4492 100644
+--- a/src/UnwindCursor.hpp
++++ b/src/UnwindCursor.hpp
+@@ -1356,7 +1356,7 @@ int UnwindCursor<A, R>::step() {
+     this->setInfoBasedOnIPRegister(true);
+     if (_unwindInfoMissing)
+       return UNW_STEP_END;
+-    if (_info.gp)
++    if (_info.gp && 0)
+       setReg(UNW_REG_SP, getReg(UNW_REG_SP) + _info.gp);
+   }
+ 
+diff --git a/src/libunwind.cpp b/src/libunwind.cpp
+index e9981f4..3981cee 100644
+--- a/src/libunwind.cpp
++++ b/src/libunwind.cpp
+@@ -182,8 +182,16 @@ _LIBUNWIND_EXPORT int unw_set_reg(unw_cursor_t *cursor, unw_regnum_t regNum,
+     co->setReg(regNum, (pint_t)value);
+     // specical case altering IP to re-find info (being called by personality
+     // function)
+-    if (regNum == UNW_REG_IP)
++    if (regNum == UNW_REG_IP) {
++      unw_proc_info_t info;
++      co->getInfo(&info);
++      pint_t orgArgSize = (pint_t)info.gp;
++      uint64_t orgFuncStart = info.start_ip;
+       co->setInfoBasedOnIPRegister(false);
++      // and adjust REG_SP if there was a DW_CFA_GNU_args_size
++      if ((orgFuncStart == info.start_ip) && (orgArgSize != 0))
++        co->setReg(UNW_REG_SP, co->getReg(UNW_REG_SP) + orgArgSize);
++    }
+     return UNW_ESUCCESS;
+   }
+   return UNW_EBADREG;
+-- 
+2.7.4
+
