@@ -130,3 +130,32 @@ RUN apt-get update -qq && \
     apt-get remove -qqy binutils-mingw-w64-x86-64 && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y lua5.2 libtool automake autoconf autopoint make gettext pkg-config qt4-dev-tools qt5-default git subversion cmake cvs wine64-development-tools zip p7zip nsis bzip2 yasm ragel ant default-jdk protobuf-compiler dos2unix vim gperf
+
+RUN git clone git://git.videolan.org/vlc.git && \
+    cd vlc && \
+    git checkout b385c2763f72dca4df5fef3013503ae3ef095cc6 # known working hash
+
+
+WORKDIR /build/vlc
+
+RUN cd extras/tools && ./bootstrap && make -j$CORES
+ENV PATH=/build/vlc/extras/tools/build/bin:$PATH
+
+ARG VLC_ARCH=x86_64
+
+RUN mkdir -p contrib/win32 && \
+    cd contrib/win32 && \
+    ../bootstrap --host=$VLC_ARCH-w64-mingw32 && \
+    make -j$CORES fetch
+RUN cd contrib/win32 && \
+    make -j$CORES
+RUN ./bootstrap
+ENV PKG_CONFIG_LIBDIR=/build/vlc/contrib/$VLC_ARCH-w64-mingw32/lib/pkgconfig
+RUN mkdir win32 && \
+    cd win32 && \
+    ../extras/package/win32/configure.sh --host=$VLC_ARCH-w64-mingw32 && \
+    make -j$CORES
+RUN cd win32 && \
+    make package-win32-zip WINE_SDK_PATH=/usr/include/wine-development/windows -j$CORES
