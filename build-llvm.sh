@@ -33,10 +33,10 @@ if [ ! -d llvm ]; then
     # When cloning master and checking out a pinned old hash, we can't use --depth=1.
     # Do the git-svn rebase to populate git-svn information, to make
     # "clang --version" produce SVN based version numbers.
-    git clone -b master https://github.com/llvm-mirror/llvm.git
+    git clone -b master https://github.com/llvm-mirror/llvm
     cd llvm/tools
-    git clone -b master https://github.com/llvm-mirror/clang.git
-    git clone -b master https://github.com/llvm-mirror/lld.git
+    git clone -b master https://github.com/llvm-mirror/clang
+    git clone -b master https://github.com/llvm-mirror/lld
     cd ..
     git svn init https://llvm.org/svn/llvm-project/llvm/trunk
     git config svn-remote.svn.fetch :refs/remotes/origin/master

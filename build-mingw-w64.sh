@@ -57,7 +57,7 @@ if [ -z "$HOST" ]; then
     mkdir -p build
     cd build
     ../configure --prefix=$HEADER_ROOT \
-        --enable-secure-api --enable-idl --with-default-win32-winnt=0x600 --with-default-msvcrt=ucrt INSTALL="install -C"
+        --enable-secure-api --enable-idl --with-default-win32-winnt=0x600 INSTALL="install -C"
     make install
     cd ../..
     if [ -z "$SKIP_INCLUDE_TRIPLET_PREFIX" ]; then
@@ -85,7 +85,7 @@ if [ -z "$HOST" ]; then
             FLAGS="--disable-lib32 --enable-lib64"
             ;;
         esac
-        FLAGS="$FLAGS --with-default-msvcrt=ucrt"
+#       FLAGS="$FLAGS --with-default-msvcrt=ucrt"
         ../configure --host=$arch-w64-mingw32 --prefix=$PREFIX/$arch-w64-mingw32 $FLAGS \
             CC=$arch-w64-mingw32-clang AR=llvm-ar RANLIB=llvm-ranlib DLLTOOL=llvm-dlltool
         make -j$CORES
